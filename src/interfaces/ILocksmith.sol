@@ -128,10 +128,10 @@ interface ILocksmith {
      *  - the caller doesn't hold the root key
      *  - the provided key ID isn't associated with the root key's key ring
      *
-     * @param rootKeyId root key to be used for this operation
-     * @param keyId     key ID the message sender wishes to copy
+     * @param rootKeyId root key to be used for this operation.
+     * @param keyId     key ID the message sender wishes to copy.
      * @param receiver  addresses of the receivers for the copied key.
-     * @param bind      true if you want to bind the key to the receiver 
+     * @param bind      true if you want to bind the key to the receiver. 
      */
     function copyKey(uint256 rootKeyId, uint256 keyId, address receiver, bool bind) external;
     
@@ -148,10 +148,10 @@ interface ILocksmith {
      *  - the caller doesn't have the root key
      *  - the target keyId doesn't exist in the trust
      *
-     * @param rootKeyId the operator's root key
-     * @param keyHolder the address to bind the key to
-     * @param keyId     the keyId they want to bind
-     * @param amount    the amount of keys to bind to the holder
+     * @param rootKeyId the operator's root key.
+     * @param keyHolder the address to bind the key to.
+     * @param keyId     the keyId they want to bind.
+     * @param amount    the amount of keys to bind to the holder.
      */
     function soulbindKey(uint256 rootKeyId, address keyHolder, uint256 keyId, uint256 amount) external;
 
@@ -167,10 +167,10 @@ interface ILocksmith {
      *  - The key id is not on the same ring as the root key.
      *  - The target holder doesn't have sufficient keys to burn.
      *
-     * @param rootKeyId root key for the associated trust
-     * @param keyId     id of the key you want to burn
-     * @param holder    address of the holder you want to burn from
-     * @param amount    the number of keys you want to burn
+     * @param rootKeyId root key for the associated trust.
+     * @param keyId     id of the key you want to burn.
+     * @param holder    address of the holder you want to burn from.
+     * @param amount    the number of keys you want to burn.
      */
     function burnKey(uint256 rootKeyId, uint256 keyId, address holder, uint256 amount) external;
     
@@ -179,15 +179,49 @@ interface ILocksmith {
     ///////////////////////////////////////////////////////
 
     /**
-     * getKeys()
+     * getRingKeys()
      *
-     * Given a ring key Id, provides a list of keys associated with it. 
+     * Given a ring key Id, provides a list of keys ids associated with the ring. 
      *
      * @param  ringId the id you want the array of keyIds for.
      * @return array of key Ids on the key ring.
      */
-    function getKeys(uint256 ringId) external view returns (uint256[] memory); 
- 
+    function getRingKeys(uint256 ringId) external view returns (uint256[] memory); 
+
+	/**
+     * getKeysForHolder
+     *
+     * This method will return the IDs of the keys held
+     * by the given address.
+     *
+     * @param  holder the address of the key holder you want to see.
+     * @return an array of key IDs held by the user.
+     */
+    function getKeysForHolder(address holder) external view returns (uint256[] memory);
+
+	/**
+     * getHolders
+     *
+     * This method will return the addresses that hold
+     * a particular keyId.
+     *
+     * @param  keyId the key ID to look for.
+     * @return an array of addresses that hold that key.
+     */
+    function getHolders(uint256 keyId) external view returns (address[] memory);
+
+	/**
+     * getSoulboundAmount 
+     *
+     * Returns the number of keys a given holder must maintain when
+	 * sending the associated key ID out of their address.
+	 *
+     * @param account   the wallet address you want the binding amount for. 
+     * @param id        the key id you want the soulbound amount for. 
+     * @return the soulbound token requirement for that wallet and key id.
+     */
+    function getSoulboundAmount(address account, uint256 id) external view returns (uint256);
+
     /**
      * isRootKey
      *
