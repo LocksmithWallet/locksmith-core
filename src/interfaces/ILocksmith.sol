@@ -1,5 +1,46 @@
 // SPDX-License-Identifier: MIT 
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.23;
+
+///////////////////////////////////////////////////////
+// Dependencies 
+///////////////////////////////////////////////////////
+
+// The locksmith keys operate on face as an ERC1155 token. The
+// interface extends the ERC1155 interface such that token receiving,
+// sending, holding, and off-chain indexing work as expected.
+//
+// Locksmith keys behave differently than the ERC1155 spec in a few important
+// ways:
+//
+// * Tokens can be minted, burned, or soulbound by their owners at will.
+// * The Locksmith contract has multiple "owners," with their own separate key rings they control.
+//
+// For these reasons, Locksmith keys are utilitarian in nature and shouldn't be
+// considered safe for trading, or storing in regular vaults. Safe Locksmith key
+// storage is provided by the "KeyLocker" which enables key holders to borrow a key
+// for the duration of a transaction.
+import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+
+// Transactions will revert with this message when an operation
+// is attempted on an invalid key ring ID.
+error InvalidRing();
+
+// Transactions will revert with this message when an operation
+// is attempted by a message sender that doesn't hold the appropriate
+// key.
+error KeyNotHeld(); 
+
+// Transactions will revert with this message when an operation
+// is attempted that requires root, but a non-root key was used.
+error KeyNotRoot();
+
+// Transactions will revert with this message when an operation
+// is attempted on a key that doesn't exist on the relevant ring.
+error InvalidRingKey();
+
+// Transactions will revert with this message when an operation
+// fails validating a set of keys to a given ring.
+error InvalidRingKeySet();
 
 /**
  * Locksmith 
@@ -18,7 +59,7 @@ pragma solidity ^0.8.21;
  * time - including only for a part of a single transaction.
  * 
  */
-interface ILocksmith {
+interface ILocksmith is IERC1155 {
     ///////////////////////////////////////////////////////
     // Events
     ///////////////////////////////////////////////////////
@@ -46,10 +87,9 @@ interface ILocksmith {
      * @param operator the creator of the ring key.
      * @param ringId   the key ring ID they are creating the key on. 
      * @param keyId    the key ID that was minted by the operator. 
-     * @param keyName  the named alias for the key given by the operator, as a bytes32. 
      * @param receiver the receiving wallet address where the keyId was deposited.
      */
-    event keyMinted(address operator, uint256 ringId, uint256 keyId, bytes32 keyName, address receiver);
+    event keyMinted(address operator, uint256 ringId, uint256 keyId, address receiver);
     
     /**
      * keyBurned
@@ -87,12 +127,14 @@ interface ILocksmith {
      * Calling this function will create a key ring with a name,
      * mint the first root key, and give it to the desginated receiver.
      *
-     * @param ringName  A string defining the name of the key ring encoded as bytes32. 
-     * @param recipient The address to receive the root key for this key ring.
+     * @param ringName    A string defining the name of the key ring encoded as bytes32.
+	 * @param rootKeyName A string denoting a human readable name of the root key. 
+     * @param uri         The metadata URI for the new root key.
+     * @param recipient   The address to receive the root key for this key ring.
      * @return the key ring ID that was created
      * @return the root key ID that was created
      */
-    function createKeyRing(bytes32 ringName, address recipient) external returns (uint256, uint256);
+	function createKeyRing(bytes32 ringName, bytes32 rootKeyName, string calldata uri, address recipient) external returns (uint256, uint256); 
     
     /**
      * createKey
@@ -104,13 +146,14 @@ interface ILocksmith {
      * This code will panic if:
      *  - the caller doesn't hold the declared root key
      *
-     * @param rootKeyId the root key the sender is attempting to operate to create new keys.
-     * @param keyName   an alias that you want to give the key.
+     * @param rootKeyId The root key the sender is attempting to operate to create new keys.
+     * @param keyName   An alias that you want to give the key.
+	 * @param uri       The metadata URI for the newly created key.
      * @param receiver  address you want to receive the ring key. 
      * @param bind      true if you want to bind the key to the receiver.
      * @return the ID of the key that was created
      */
-    function createKey(uint256 rootKeyId, bytes32 keyName, address receiver, bool bind) external returns (uint256); 
+    function createKey(uint256 rootKeyId, bytes32 keyName, string calldata uri, address receiver, bool bind) external returns (uint256); 
     
     /**
      * copyKey
@@ -159,8 +202,7 @@ interface ILocksmith {
      * burnKey
      *
      * The root key holder can call this method if they want to revoke
-     * a key from a holder. If for some reason the holder has multiple
-     * copies of this key, this method will burn them *all*.
+     * a key from a holder.
      *
      * This code will panic if:
      *  - The caller doesn't hold the root key.
@@ -178,15 +220,18 @@ interface ILocksmith {
     // Introspection 
     ///////////////////////////////////////////////////////
 
-    /**
-     * getRingKeys()
+	/**
+     * getRingInfo()
      *
-     * Given a ring key Id, provides a list of keys ids associated with the ring. 
+     * Given a ring, provides ring metadata back.
      *
-     * @param  ringId the id you want the array of keyIds for.
-     * @return array of key Ids on the key ring.
+     * @param ringId The ID of the ring to inspect.
+     * @return The ring ID back as verification.
+     * @return The human readable name for the ring.
+     * @return The root key ID for the ring.
+     * @return The list of keys for the ring.
      */
-    function getRingKeys(uint256 ringId) external view returns (uint256[] memory); 
+    function getRingInfo(uint256 ringId) external view returns (uint256, bytes32, uint256, uint256[] memory);
 
 	/**
      * getKeysForHolder
@@ -216,11 +261,11 @@ interface ILocksmith {
      * Returns the number of keys a given holder must maintain when
 	 * sending the associated key ID out of their address.
 	 *
-     * @param account   the wallet address you want the binding amount for. 
-     * @param id        the key id you want the soulbound amount for. 
+     * @param account   The wallet address you want the binding amount for. 
+     * @param keyId     The key id you want the soulbound amount for. 
      * @return the soulbound token requirement for that wallet and key id.
      */
-    function getSoulboundAmount(address account, uint256 id) external view returns (uint256);
+    function getSoulboundAmount(address account, uint256 keyId) external view returns (uint256);
 
     /**
      * isRootKey
