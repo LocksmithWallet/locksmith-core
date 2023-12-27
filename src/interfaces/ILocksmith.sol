@@ -263,16 +263,20 @@ interface ILocksmith {
      * validateKeyRing
      *
      * Contracts can call this method to determine if a set
-     * of keys belong to the same ring.
+     * of keys belong to the same ring. This is used as a validation
+	 * method and will *revert* if the keys do not belong to the same
+	 * ring. This is extremely useful when taking a set of keys and ensuring
+	 * each is part of the same ring first.
      *
      * You can use allowRoot to enable cases were passing in the root key
-     * for validation isn't acceptable. Setting it to false enables you
-     * to easily detect if one of the keys provided is the root key. 
+     * for validation is acceptable. Setting it to false enables you
+     * to easily detect if one of the keys provided is the root key.
+	 * Remember, this method will revert also based on allowRoot semantics. 
      *
      * @param ringId    the ring ID you want to validate against
      * @param keys      the supposed keys that belong to the ring
      * @param allowRoot true if providing the ring's root key as input is acceptable
      * @return true if valid, or will otherwise revert.
      */
-    function validateKeyRing(uint256 trustId, uint256[] calldata keys, bool allowRoot) external view returns (bool);
+    function validateKeyRing(uint256 ringId, uint256[] calldata keys, bool allowRoot) external view returns (bool);
 }
