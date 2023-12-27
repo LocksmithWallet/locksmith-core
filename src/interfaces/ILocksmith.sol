@@ -42,6 +42,10 @@ error InvalidRingKey();
 // fails validating a set of keys to a given ring.
 error InvalidRingKeySet();
 
+// Transactions will revert with this message when an operation
+// results in a soulbound key amount being breached.
+error SoulboundTransferBreach();
+
 /**
  * Locksmith 
  *

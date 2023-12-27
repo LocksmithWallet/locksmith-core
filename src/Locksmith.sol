@@ -11,7 +11,8 @@ import {
 	KeyNotRoot,
 	InvalidRing,
 	InvalidRingKey,
-	InvalidRingKeySet
+	InvalidRingKeySet,
+	SoulboundTransferBreach
 } from 'src/interfaces/ILocksmith.sol';
 
 // We are going to use the standard OZ ERC1155 implementation,
@@ -543,4 +544,37 @@ contract Locksmith is ILocksmith, ERC1155 {
         _mint(receiver, keyId, 1, ''); 
         emit keyMinted(msg.sender, ring.id, keyId, receiver);
     }
+
+	/**
+     * _update
+     *
+     * This is an override for ERC1155. We are going
+     * to ensure that the transfer is not tripping any
+     * soulbound token amounts.
+     */
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal virtual override {
+		super._update(from, to, ids, values);
+
+        // here we check to see if any 'from' addresses
+        // would end up with too few soulbound requirements
+        // at the end of the transaction.
+        for(uint256 x = 0; x < ids.length; x++) {
+            // we need to allow address zero during minting,
+            // and we need to allow the locksmith to violate during burning
+            if ( !(from == address(0)) ||
+                 !((balanceOf(from, ids[x]) - values[x]) >= soulboundKeyAmounts[from][ids[x]])) {
+					revert SoulboundTransferBreach();
+			}
+
+            // lets keep track of each key that is moving
+            if(from != address(0) && ((balanceOf(from, ids[x]) - values[x]) == 0)) {
+                assert(addressKeys[from].remove(ids[x]));
+                assert(keyHolders[ids[x]].remove(from));
+            }
+            if(to != address(0) && ((balanceOf(to, ids[x]) + values[x]) > 0)) {
+                addressKeys[to].add(ids[x]);
+                keyHolders[ids[x]].add(to);
+            }
+        }
+	}
 }
