@@ -442,9 +442,6 @@ contract Locksmith is ILocksmith, ERC1155 {
         // this is safe since the ring is valid
         KeyRing storage ring = ringRegistry[ringId];
 
-        // invariant: make sure the root key was minted once
-        assert(ring.keys.contains(ring.rootKeyId));
-
 		// check that each key is valid, not root, and on the declared ring
         for(uint256 x = 0; x < keys.length; x++) {
 			if ( (keys[x] >= keyCount) 						|| // valid key?
@@ -575,17 +572,33 @@ contract Locksmith is ILocksmith, ERC1155 {
 					revert SoulboundTransferBreach();
 			}	
 
-            // lets keep track of each key that is moving
-            if(from != address(0) && ((balanceOf(from, ids[x]) - values[x]) == 0)) {
-                assert(addressKeys[from].remove(ids[x]));
-                assert(keyHolders[ids[x]].remove(from));
-            }
-            if(to != address(0) && ((balanceOf(to, ids[x]) + values[x]) > 0)) {
-                addressKeys[to].add(ids[x]);
-                keyHolders[ids[x]].add(to);
-            }
+			_manageIndexes(from, to, ids[x], values[x]);
         }
 		
 		super._update(from, to, ids, values);
+	}
+
+	/**
+	 * _manageIndexes
+	 *
+	 * Encapsulate the index management. This does not consider supply
+	 * management, which is more directly changed via #createKeyRing, #createKey, 
+	 * #copyKey, and #burnKey.
+	 *
+	 * @param from  The address of the sender, or address(0) for minting.
+	 * @param to    The address of the recipient, or address(0) for burning.
+	 * @param id    The id of the key token that is being sent.
+	 * @param value The number of keys that are being sent.
+	 */
+	function _manageIndexes(address from, address to, uint256 id, uint256 value) internal {
+    	// lets keep track of each key that is moving
+    	if(balanceOf(from, id) == value) {
+    		addressKeys[from].remove(id);
+        	keyHolders[id].remove(from);
+    	}
+		if(address(0) != to) {
+			addressKeys[to].add(id);
+        	keyHolders[id].add(to);
+		}	
 	}
 }

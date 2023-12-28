@@ -85,6 +85,15 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 		assertEq(0, ringId);
 		assertEq(0, keyId);
 
+		// get the ring info
+		(uint256 ringIdBack, bytes32 ringName, uint256 rootKeyId, uint256[] memory ringKeys) =
+			locksmith.getRingInfo(0);
+		assertEq(0, ringIdBack);
+		assertEq(stb('My Key Ring'), ringName);
+		assertEq(0, rootKeyId);
+		assertEq(0, ringKeys[0]);
+		assertEq(1, ringKeys.length);
+
 		// make sure we are now holding the key
 		assertEq(1, locksmith.balanceOf(address(this), 0));
 
@@ -202,6 +211,21 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 		assertEq(1, locksmith.keySupply(1));
 		assertEq(1, locksmith.getHolders(1).length);
 		assertEq(1, locksmith.getKeysForHolder(address(0x1337))[0]);
+		
+		// mint multiple copies
+		locksmith.copyKey(0, 1, address(this), false);
+		locksmith.copyKey(0, 1, address(this), false);
+		locksmith.copyKey(0, 1, address(this), false);
+		
+		// check supply
+		assertEq(4, locksmith.keySupply(1));
+		assertEq(2, locksmith.getHolders(1).length);
+		assertEq(1, locksmith.getKeysForHolder(address(this))[1]);
+		assertEq(2, locksmith.getKeysForHolder(address(this)).length);
+
+		// send out root key 
+		locksmith.safeTransferFrom(address(this), address(0x1337), 0, 1, '');
+		assertEq(1, locksmith.getKeysForHolder(address(this)).length);
 	}
 
 	function test_MustBeRootToSoulbindKeys() public {
@@ -383,6 +407,8 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 
 		// post conditions
 		assertEq(0, locksmith.balanceOf(address(0x1337), 0));
+		assertEq(address(this), locksmith.getHolders(0)[0]);
+		assertEq(1, locksmith.getHolders(0).length);
 	}
 
 	function test_IrrevocablePermissionsRootKeyBurned() public {
