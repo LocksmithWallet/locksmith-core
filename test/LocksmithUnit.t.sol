@@ -345,6 +345,10 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 		vm.expectRevert(SoulboundTransferBreach.selector);
 		locksmith.safeTransferFrom(address(this), address(0x1337), 0, 1, '');
 	}
+	
+	//////////////////////////////////////////////
+	// Key Burning 
+	//////////////////////////////////////////////
 
 	function test_OnlyRootCanBurnKeys() public {
 		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(0x1337));
@@ -382,31 +386,49 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 	}
 
 	function test_IrrevocablePermissionsRootKeyBurned() public {
+		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+		locksmith.burnKey(0, 0, address(this), 1);
 
+		// ive made this permission set immutable!
+		vm.expectRevert(KeyNotHeld.selector);
+		locksmith.copyKey(0, 0, address(this), false);
 	}
 
 	function test_SoulboundKeysCanBurnButKeepsBinding() public {
+		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+		locksmith.soulbindKey(0, address(this), 0, 1);
 
-	}
+		// precondition
+		assertEq(1, locksmith.getSoulboundAmount(address(this), 0));
 
-	function test_RingValidationRequiresValidRing() public {
-
-	}
+		// burn the key, which you can do as root
+		locksmith.burnKey(0, 0, address(this), 1);
 	
+		// post condition, keeps the binding configuration	
+		assertEq(1, locksmith.getSoulboundAmount(address(this), 0));
+	}
+
 	function test_RingValidationRequiresValidKeys() public {
+		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+		locksmith.createKey(0, stb('Second'), '', address(this), false);
+		locksmith.createKey(0, stb('Third'), '', address(this), false);
+		locksmith.createKey(0, stb('Fourth'), '', address(this), false);
+		locksmith.createKeyRing(stb("My Key Ring 2"), stb("Master Key 2"), '', address(this));
 
-	}
+		uint256[] memory keys = new uint256[](3);
+	   	keys[0] = 0;
+		keys[1] = 1;
+		keys[2] = 10;	
+		vm.expectRevert(InvalidRingKeySet.selector);
+		locksmith.validateKeyRing(0, keys, true);
 
-	function test_RingValidationRequiresProperKeys() public {
+		keys[2] = 4; // valid key, bad ring	
+		vm.expectRevert(InvalidRingKeySet.selector);
+		locksmith.validateKeyRing(0, keys, true);
 
-	}
-
-	function test_RingValidationSuccess() public {
-
-	}
-
-	function test_BigStateTest() public {
-
+		// success
+		keys[2] = 2; 
+		assertEq(true, locksmith.validateKeyRing(0, keys, true));
 	}
 
 	/**

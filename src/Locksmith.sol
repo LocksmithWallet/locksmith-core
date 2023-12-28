@@ -570,7 +570,7 @@ contract Locksmith is ILocksmith, ERC1155 {
         for(uint256 x = 0; x < ids.length; x++) {
             // we need to allow address zero during minting,
             // and we need to allow the locksmith to violate during burning
-            if ( (from != address(0)) && 
+            if ( (from != address(0)) && (to != address(0)) &&  
             	 (balanceOf(from, ids[x]) - values[x]) < soulboundKeyAmounts[from][ids[x]]) {
 					revert SoulboundTransferBreach();
 			}	
