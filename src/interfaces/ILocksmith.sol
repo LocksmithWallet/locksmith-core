@@ -133,12 +133,12 @@ interface ILocksmith is IERC1155 {
      *
      * @param ringName    A string defining the name of the key ring encoded as bytes32.
 	 * @param rootKeyName A string denoting a human readable name of the root key. 
-     * @param uri         The metadata URI for the new root key.
+     * @param keyUri      The metadata URI for the new root key.
      * @param recipient   The address to receive the root key for this key ring.
      * @return the key ring ID that was created
      * @return the root key ID that was created
      */
-	function createKeyRing(bytes32 ringName, bytes32 rootKeyName, string calldata uri, address recipient) external returns (uint256, uint256); 
+	function createKeyRing(bytes32 ringName, bytes32 rootKeyName, string calldata keyUri, address recipient) external returns (uint256, uint256); 
     
     /**
      * createKey
@@ -152,12 +152,12 @@ interface ILocksmith is IERC1155 {
      *
      * @param rootKeyId The root key the sender is attempting to operate to create new keys.
      * @param keyName   An alias that you want to give the key.
-	 * @param uri       The metadata URI for the newly created key.
+	 * @param keyUri    The metadata URI for the newly created key.
      * @param receiver  address you want to receive the ring key. 
      * @param bind      true if you want to bind the key to the receiver.
      * @return the ID of the key that was created
      */
-    function createKey(uint256 rootKeyId, bytes32 keyName, string calldata uri, address receiver, bool bind) external returns (uint256); 
+    function createKey(uint256 rootKeyId, bytes32 keyName, string calldata keyUri, address receiver, bool bind) external returns (uint256); 
     
     /**
      * copyKey
@@ -169,7 +169,7 @@ interface ILocksmith is IERC1155 {
      *
      * This method can only be invoked with a root key, which is held by
      * the message sender. The key they want to copy also must be associated
-     * with the trust bound to the root key used.
+     * with the ring bound to the root key used.
      *
      * This code will panic if:
      *  - the caller doesn't hold the root key
@@ -193,7 +193,7 @@ interface ILocksmith is IERC1155 {
      *
      * This code will panic if:
      *  - the caller doesn't have the root key
-     *  - the target keyId doesn't exist in the trust
+     *  - the target keyId doesn't exist in the ring
      *
      * @param rootKeyId the operator's root key.
      * @param keyHolder the address to bind the key to.
@@ -213,7 +213,7 @@ interface ILocksmith is IERC1155 {
      *  - The key id is not on the same ring as the root key.
      *  - The target holder doesn't have sufficient keys to burn.
      *
-     * @param rootKeyId root key for the associated trust.
+     * @param rootKeyId root key for the associated ring.
      * @param keyId     id of the key you want to burn.
      * @param holder    address of the holder you want to burn from.
      * @param amount    the number of keys you want to burn.

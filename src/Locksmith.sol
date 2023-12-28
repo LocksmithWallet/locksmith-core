@@ -123,12 +123,12 @@ contract Locksmith is ILocksmith, ERC1155 {
      *
      * @param ringName    A string defining the name of the key ring encoded as bytes32.
 	 * @param rootKeyName A string denoting a human readable name of the root key. 
-     * @param uri         The metadata URI for the new root key.
+     * @param keyUri      The metadata URI for the new root key.
      * @param recipient   The address to receive the root key for this key ring.
      * @return the key ring ID that was created
      * @return the root key ID that was created
      */
-	function createKeyRing(bytes32 ringName, bytes32 rootKeyName, string calldata uri, address recipient) external returns (uint256, uint256) {
+	function createKeyRing(bytes32 ringName, bytes32 rootKeyName, string calldata keyUri, address recipient) external returns (uint256, uint256) {
 		// build the ring with post-increment IDs,
 		// prevent re-entrancy attacks on keys
         KeyRing storage r = ringRegistry[ringCount];
@@ -139,7 +139,7 @@ contract Locksmith is ILocksmith, ERC1155 {
 		// store the new key metadata
 		KeyMetadata storage kmd = keyData[r.rootKeyId];
 		kmd.name = rootKeyName;
-		kmd.uri  = uri;
+		kmd.uri  = keyUri;
 
         // mint the root key, give it to the sender.
 		// check-effects-interaction: this is re-entrant
@@ -162,12 +162,12 @@ contract Locksmith is ILocksmith, ERC1155 {
      *
      * @param rootKeyId The root key the sender is attempting to operate to create new keys.
      * @param keyName   An alias that you want to give the key.
-     * @param uri       The metadata URI for the newly created key.
+     * @param keyUri	The metadata URI for the newly created key.
      * @param receiver  address you want to receive the ring key.
      * @param bind      true if you want to bind the key to the receiver.
      * @return the ID of the key that was created
      */
-    function createKey(uint256 rootKeyId, bytes32 keyName, string calldata uri, address receiver, bool bind) external returns (uint256) {
+    function createKey(uint256 rootKeyId, bytes32 keyName, string calldata keyUri, address receiver, bool bind) external returns (uint256) {
 		// get the ring object but only if the root key holder is legit
         KeyRing storage ring = ringRegistry[_getRingFromRootKey(rootKeyId)];
 
@@ -177,7 +177,7 @@ contract Locksmith is ILocksmith, ERC1155 {
 		// store the new key metadata
 		KeyMetadata storage kmd = keyData[newKeyId];
 		kmd.name = keyName;
-		kmd.uri  = uri;
+		kmd.uri  = keyUri;
 
         // mint the key into the target wallet.
         // THIS IS RE-ENTRANT!!!!
@@ -196,7 +196,7 @@ contract Locksmith is ILocksmith, ERC1155 {
      *
      * This method can only be invoked with a root key, which is held by
      * the message sender. The key they want to copy also must be associated
-     * with the trust bound to the root key used.
+     * with the ring bound to the root key used.
      *
      * This code will panic if:
      *  - the caller doesn't hold the root key
@@ -232,7 +232,7 @@ contract Locksmith is ILocksmith, ERC1155 {
      *
      * This code will panic if:
      *  - the caller doesn't have the root key
-     *  - the target keyId doesn't exist in the trust
+     *  - the target keyId doesn't exist in the ring 
      *
      * @param rootKeyId the operator's root key
      * @param keyHolder the address to bind the key to
@@ -262,7 +262,7 @@ contract Locksmith is ILocksmith, ERC1155 {
      *  - The key id is not on the same ring as the root key.
      *  - The target holder doesn't have sufficient keys to burn.
      *
-     * @param rootKeyId root key for the associated trust.
+     * @param rootKeyId root key for the associated ring.
      * @param keyId     id of the key you want to burn.
      * @param holder    address of the holder you want to burn from.
      * @param amount    the number of keys you want to burn.
@@ -366,22 +366,33 @@ contract Locksmith is ILocksmith, ERC1155 {
      *
      * @return true if the key is a valid key
      * @return alias of the key
-     * @return the trust id of the key (only if its considered valid)
+     * @return the ring id of the key (only if its considered valid)
      * @return true if the key is a root key
-     * @return the keys associated with the given trust
+     * @return the keys associated with the given ring 
      */
     function inspectKey(uint256 keyId) public view returns (bool, bytes32, uint256, bool, uint256[] memory) {
         // the key is a valid key number
         return ((keyId < keyCount),
             // the human readable name of the key
             keyData[keyId].name,
-            // trust Id of the key
+            // ring Id of the key
             keyRingAssociations[keyId],
             // the key is a root key
             _isRootKey(keyId),
-            // the keys associated with the trust
+            // the keys associated with the ring 
             ringRegistry[keyRingAssociations[keyId]].keys.values());
     }
+
+	/**
+     * uri
+     *
+     * Given a key id, will provide the metadata uri. 
+     *
+     * @param id the id of the NFT we want to inspect
+     */
+    function uri(uint256 id) public view virtual override returns (string memory) {
+    	return keyData[id].uri;
+	}
 
 	/**
      * hasKeyOrRoot
@@ -552,19 +563,17 @@ contract Locksmith is ILocksmith, ERC1155 {
      * to ensure that the transfer is not tripping any
      * soulbound token amounts.
      */
-    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal virtual override {
-		super._update(from, to, ids, values);
-
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal virtual override {	
         // here we check to see if any 'from' addresses
         // would end up with too few soulbound requirements
         // at the end of the transaction.
         for(uint256 x = 0; x < ids.length; x++) {
             // we need to allow address zero during minting,
             // and we need to allow the locksmith to violate during burning
-            if ( !(from == address(0)) ||
-                 !((balanceOf(from, ids[x]) - values[x]) >= soulboundKeyAmounts[from][ids[x]])) {
+            if ( (from != address(0)) && 
+            	 (balanceOf(from, ids[x]) - values[x]) < soulboundKeyAmounts[from][ids[x]]) {
 					revert SoulboundTransferBreach();
-			}
+			}	
 
             // lets keep track of each key that is moving
             if(from != address(0) && ((balanceOf(from, ids[x]) - values[x]) == 0)) {
@@ -576,5 +585,7 @@ contract Locksmith is ILocksmith, ERC1155 {
                 keyHolders[ids[x]].add(to);
             }
         }
+		
+		super._update(from, to, ids, values);
 	}
 }
