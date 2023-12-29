@@ -1,4 +1,9 @@
+# Mac
 .DS_Store
+
+# Code Coverage Output
+coverage/
+
 # Compiler files
 cache/
 out/
