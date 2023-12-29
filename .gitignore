@@ -2,7 +2,7 @@
 .DS_Store
 
 # Code Coverage Output
-coverage/
+coverage/*
 
 # Compiler files
 cache/
