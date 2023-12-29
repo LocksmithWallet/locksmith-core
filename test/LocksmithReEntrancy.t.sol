@@ -68,7 +68,59 @@ contract LocksmithReEntrancyTest is Test, ERC1155Holder {
 		assertEq(1, keys[0]);
 		assertEq(1, keys.length);
 	}
-	
+
+	function test_CantCopyWrongKeyAfterCreateRing() public {
+		LocksmithReEnterCopyKey attacker = new LocksmithReEnterCopyKey(0, 0);
+		attacker.ready();
+        (bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
+            locksmith.inspectKey(0);
+
+        // pre conditions
+        assertEq(false, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(0, keys.length);
+
+        // do the re-entrancy
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(attacker));
+
+        // the attacker will hold key ID 0, for ring ID 0
+        assertEq(1, locksmith.balanceOf(address(0x1337), 0));
+        assertEq(1, locksmith.balanceOf(address(attacker), 0));
+	}
+
+	function test_CantCreateDuplicateKeyAfterCreateRing() public {
+		LocksmithReEnterCreateKey attacker = new LocksmithReEnterCreateKey(0);
+
+		(bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
+            locksmith.inspectKey(1);
+
+        // pre conditions
+        assertEq(false, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(0, keys.length);
+        
+		// do the re-entrancy
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(attacker));
+
+		// its going to take the key, and try to create another one,
+		// which it can do, as ID one
+		// post conditions
+		(isValid, keyName, ringId, isRoot, keys) = locksmith.inspectKey(1);
+		assertEq(true, isValid);
+		assertEq(bytes32(0), keyName);
+		assertEq(0, ringId);
+		assertEq(false, isRoot);
+		assertEq(0, keys[0]);
+		assertEq(1, keys[1]);
+		assertEq(2, keys.length);
+		assertEq(1, locksmith.balanceOf(address(0x1337), 1));
+		assertEq(1, locksmith.getHolders(1).length);
+	}
+
 	//////////////////////////////////////////////
 	// Re-entering everything after creating a key 
 	//////////////////////////////////////////////

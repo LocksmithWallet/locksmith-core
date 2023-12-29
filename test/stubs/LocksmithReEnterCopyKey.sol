@@ -31,15 +31,14 @@ contract LocksmithReEnterCopyKey is ERC1155Holder {
      *
      * Will trigger when this contract is sent a key. 
      *
-	 * @param operator the message sender, which should be the locksmith
      * @return the function selector to prove valid response
      */
-    function onERC1155Received(address operator, address, uint256, uint256, bytes memory)
+    function onERC1155Received(address, address, uint256, uint256, bytes memory)
 		public virtual override returns (bytes4) {
 			
 		if (isReady) {
 			// just immediate assume the operator is who we are attacking here.
-			ILocksmith(operator).copyKey(rootKeyId, keyTarget, address(0x1337), false);
+			ILocksmith(msg.sender).copyKey(rootKeyId, keyTarget, address(0x1337), false);
 		}
 		return this.onERC1155Received.selector;
 	}
