@@ -17,10 +17,9 @@ contract LocksmithReEnterBurnKey is ERC1155Holder {
 
 	bool public isReady;
 
-	constructor(uint256 _rootKeyId, uint256 _keyTarget, address _holderTarget) {
+	constructor(uint256 _rootKeyId, uint256 _keyTarget) {
 		rootKeyId = _rootKeyId;
 		keyTarget = _keyTarget;
-		holderTarget = _holderTarget;
 		isReady = false;	
 	}
 
@@ -28,20 +27,23 @@ contract LocksmithReEnterBurnKey is ERC1155Holder {
 		isReady = true;
 	}
 
+	function setTarget(address _target) external {
+		holderTarget = _target;
+	}
+
 	/**
      * onERC1155Received
      *
      * Will trigger when this contract is sent a key. 
      *
-	 * @param operator the message sender, which should be the locksmith
      * @return the function selector to prove valid response
      */
-    function onERC1155Received(address operator, address, uint256, uint256, bytes memory)
+    function onERC1155Received(address, address, uint256, uint256, bytes memory)
 		public virtual override returns (bytes4) {
 			
 		if (isReady) {
 			// just immediate assume the operator is who we are attacking here.
-			ILocksmith(operator).burnKey(rootKeyId, keyTarget, holderTarget, 1);
+			ILocksmith(msg.sender).burnKey(rootKeyId, keyTarget, holderTarget, 1);
 		}
 		return this.onERC1155Received.selector;
 	}

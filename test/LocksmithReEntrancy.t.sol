@@ -121,6 +121,34 @@ contract LocksmithReEntrancyTest is Test, ERC1155Holder {
 		assertEq(1, locksmith.getHolders(1).length);
 	}
 
+	function test_BurningReceivedRootKeyHasSaneResult() public {
+		LocksmithReEnterBurnKey attacker = new LocksmithReEnterBurnKey(0, 0);
+		attacker.setTarget(address(attacker));
+		attacker.ready();
+
+		(bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
+            locksmith.inspectKey(0);
+
+        // pre conditions
+        assertEq(false, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(0, keys.length);
+        
+		// do the re-entrancy
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(attacker));
+
+        // post conditions
+		(isValid, keyName, ringId, isRoot, keys) = locksmith.inspectKey(0);
+        assertEq(true, isValid);
+        assertEq(stb('Master Key'), keyName);
+        assertEq(0, ringId);
+        assertEq(true, isRoot);
+		assertEq(0, locksmith.keySupply(0));
+		assertEq(0, locksmith.balanceOf(address(attacker), 0));
+	}
+
 	//////////////////////////////////////////////
 	// Re-entering everything after creating a key 
 	//////////////////////////////////////////////
