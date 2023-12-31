@@ -152,15 +152,63 @@ contract LocksmithReEntrancyTest is Test, ERC1155Holder {
 	//////////////////////////////////////////////
 	// Re-entering everything after creating a key 
 	//////////////////////////////////////////////
+
+	function test_ReEnterCreateRingAfterCreateKeyIsLegit() public {
+
+	}
+
+	function test_ReEnterCreateKeyAfterCreatingKeyDoesntDuplicate public {
+
+	}
+
+	function test_ReEnterBurnKeyAfterCreatingKeyWorksFine public {
+
+	}
+
+	function test_ReEnterCopyKeyAfterCreateKeyWorks public {
+
+	}	
 	
 	//////////////////////////////////////////////
 	// Re-entering everything after a copying a key 
 	//////////////////////////////////////////////
-	
+
+	function test_ReEnterCopyKeyAfterCopyKeyWorks public {
+
+	}
+
+	function test_ReEnterCreateRingAfterCopyKeyWorks public {
+
+	}
+
+	function test_ReEnterBurnKeyAfterCopyKeyWorks public {
+
+	}
+
+	function test_ReEnterCreateKeyAfterCopyKeyWorks public {
+
+	}
+
 	//////////////////////////////////////////////
 	// Re-entering everything after burning a key 
 	//////////////////////////////////////////////
-	
+
+	function test_ReEnterCreateRingAfterBurnKeyIsSane public {
+
+	}
+
+	function test_ReEnterCopyAfterBurnWorksAsExpected public {
+
+	}
+
+	function test_ReEnterBurnAfterBurnWorks public {
+
+	}
+
+	function test_ReEnterCreateKeyAfterBurnWorks public {
+
+	}
+
 	/**
      * stb (String to Bytes32) 
      *
