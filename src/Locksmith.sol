@@ -278,8 +278,8 @@ contract Locksmith is ILocksmith, ERC1155 {
         // manage total key supply. the holder indexes
 	    // will be managed on the transfer callback	
 		keySupply[keyId] -= amount;
-        
-		// this call is re-entrant
+       
+	   	// burn is not re-entrant	
         _burn(holder, keyId, amount);
 
         emit keyBurned(msg.sender, ring.id, keyId, holder, amount);
@@ -371,7 +371,9 @@ contract Locksmith is ILocksmith, ERC1155 {
      * @return the keys associated with the given ring 
      */
     function inspectKey(uint256 keyId) public view returns (bool, bytes32, uint256, bool, uint256[] memory) {
-        // the key is a valid key number
+        uint256[] memory empty = new uint256[](0);
+
+		// the key is a valid key number
         return ((keyId < keyCount),
             // the human readable name of the key
             keyData[keyId].name,
@@ -380,7 +382,7 @@ contract Locksmith is ILocksmith, ERC1155 {
             // the key is a root key
             _isRootKey(keyId),
             // the keys associated with the ring 
-            ringRegistry[keyRingAssociations[keyId]].keys.values());
+            keyId >= keyCount ? empty : ringRegistry[keyRingAssociations[keyId]].keys.values());
     }
 
 	/**

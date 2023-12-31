@@ -25,6 +25,7 @@ contract LocksmithReEnterCreateRing is ERC1155Holder {
 
 		// just immediate assume the operator is who we are attacking here.
 		ILocksmith(msg.sender).createKeyRing(bytes32(0), bytes32(0), '', address(0x1337));
+
 		return this.onERC1155Received.selector;
 	}
 }

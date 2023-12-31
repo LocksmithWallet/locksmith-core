@@ -43,7 +43,7 @@ contract LocksmithReEntrancyTest is Test, ERC1155Holder {
 		(bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
 			locksmith.inspectKey(1);
 
-		// post conditions
+		// pre conditions
 		assertEq(false, isValid);
 		assertEq(bytes32(0), keyName);
 		assertEq(0, ringId);
@@ -92,6 +92,7 @@ contract LocksmithReEntrancyTest is Test, ERC1155Holder {
 
 	function test_CantCreateDuplicateKeyAfterCreateRing() public {
 		LocksmithReEnterCreateKey attacker = new LocksmithReEnterCreateKey(0);
+		attacker.ready();
 
 		(bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
             locksmith.inspectKey(1);
@@ -153,60 +154,236 @@ contract LocksmithReEntrancyTest is Test, ERC1155Holder {
 	// Re-entering everything after creating a key 
 	//////////////////////////////////////////////
 
-	function test_ReEnterCreateRingAfterCreateKeyIsLegit() public {
+	function test_ReEnterCreateRingAfterCreateKeyIsLegit() public {	
+		// create the ring
+		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
 
+		// build the attacker
+		LocksmithReEnterCreateRing attacker = new LocksmithReEnterCreateRing();
+		
+		// pre conditions	
+		(bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
+			locksmith.inspectKey(2);
+		assertEq(false, isValid);
+		assertEq(bytes32(0), keyName);
+		assertEq(0, ringId);
+		assertEq(false, isRoot);
+		assertEq(0, keys.length);
+	
+		// do the re-entrancy attack
+		locksmith.createKey(0, stb('Key Name'), '', address(attacker), false);
+
+		// they simply would have created a new ring, with key ID 2, not 1
+		(isValid, keyName, ringId, isRoot, keys) = locksmith.inspectKey(2);
+		assertEq(true, isValid);
+		assertEq(bytes32(0), keyName);
+		assertEq(1, ringId);
+		assertEq(true, isRoot);
+		assertEq(1, keys.length);
 	}
 
-	function test_ReEnterCreateKeyAfterCreatingKeyDoesntDuplicate public {
+	function test_ReEnterCreateKeyAfterCreatingKeyDoesntDuplicate() public {
+        // build the attacker
+        LocksmithReEnterCreateKey attacker = new LocksmithReEnterCreateKey(0);
 
+		// create the ring, copy the key to the attacker
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+		locksmith.copyKey(0, 0, address(attacker), false);
+		
+		// ready the attacker				  
+		attacker.ready();
+
+        // pre conditions
+        (bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
+            locksmith.inspectKey(1);
+        assertEq(false, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(0, keys.length);
+
+        // do the re-entrancy attack
+        locksmith.createKey(0, stb('Key Name'), '', address(attacker), false);
+
+        // they simply would have created a new ring, with key ID 2, not 1 
+        (isValid, keyName, ringId, isRoot, keys) = locksmith.inspectKey(2);
+        assertEq(true, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(3, keys.length);
+        assertEq(0, keys[0]);
+        assertEq(1, keys[1]);
+        assertEq(2, keys[2]);
 	}
 
-	function test_ReEnterBurnKeyAfterCreatingKeyWorksFine public {
+	function test_ReEnterBurnKeyAfterCreatingKeyWorksFine() public {
+		// build the attacker
+        LocksmithReEnterBurnKey attacker = new LocksmithReEnterBurnKey(0, 1);
 
+        // create the ring, copy the key to the attacker
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+        locksmith.copyKey(0, 0, address(attacker), false);
+
+        // ready the attacker
+		attacker.setTarget(address(attacker));
+        attacker.ready();
+
+		// pre conditions
+        (bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
+            locksmith.inspectKey(1);
+        assertEq(false, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(0, keys.length);
+
+		// create the key, re-entrancy attack the burn function 
+		locksmith.createKey(0, stb('Key'), '', address(attacker), false);
+
+		// it was created
+		(isValid, keyName, ringId, isRoot, keys) = locksmith.inspectKey(1);
+		assertEq(true, isValid);
+		assertEq(stb('Key'), keyName);
+		assertEq(0, ringId);
+		assertEq(false, isRoot);
+		assertEq(2, keys.length);
+
+		// but no one holds it
+		assertEq(0, locksmith.keySupply(1));
 	}
 
-	function test_ReEnterCopyKeyAfterCreateKeyWorks public {
+	function test_ReEnterCopyKeyAfterCreateKeyWorks() public {
+		// build the attacker
+        LocksmithReEnterCopyKey attacker = new LocksmithReEnterCopyKey(0, 1);
 
+        // create the ring, copy the key to the attacker
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+        locksmith.copyKey(0, 0, address(attacker), false);
+
+        // ready the attacker
+        attacker.ready();
+
+        // pre conditions
+        (bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) =
+            locksmith.inspectKey(1);
+        assertEq(false, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(0, keys.length);
+
+        // create the key, re-entrancy attack the copy function
+        locksmith.createKey(0, stb('Key'), '', address(attacker), false);
+
+        // it was created
+        (isValid, keyName, ringId, isRoot, keys) = locksmith.inspectKey(1);
+        assertEq(true, isValid);
+        assertEq(stb('Key'), keyName);
+        assertEq(0, ringId);
+        assertEq(false, isRoot);
+        assertEq(2, keys.length);
+
+		// and now the attackers destination wallet also has the key
+		assertEq(2, locksmith.keySupply(1));
+		assertEq(2, locksmith.getHolders(1).length);
+		assertEq(address(attacker), locksmith.getHolders(1)[0]);
+		assertEq(address(0x1337), locksmith.getHolders(1)[1]);
 	}	
 	
 	//////////////////////////////////////////////
 	// Re-entering everything after a copying a key 
 	//////////////////////////////////////////////
 
-	function test_ReEnterCopyKeyAfterCopyKeyWorks public {
+	function test_ReEnterCopyKeyAfterCopyKeyWorks() public {
+		 // build the attacker
+        LocksmithReEnterCopyKey attacker = new LocksmithReEnterCopyKey(0, 0);
 
+        // create the ring, copy the key to the attacker
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+        locksmith.copyKey(0, 0, address(attacker), false);
+
+        // ready the attacker
+        attacker.ready();
+
+        // pre conditions
+		assertEq(2, locksmith.keySupply(0));
+
+        // create the key, re-entrancy attack the copy function
+        locksmith.copyKey(0, 0, address(attacker), false);
+
+        // it was created twice, to the attacker address
+        assertEq(4, locksmith.keySupply(0));
+        assertEq(3, locksmith.getHolders(0).length);
+        assertEq(address(0x1337), locksmith.getHolders(0)[2]);
 	}
 
-	function test_ReEnterCreateRingAfterCopyKeyWorks public {
+	function test_ReEnterCreateRingAfterCopyKeyWorks() public {
+		// create the ring
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
 
+        // build the attacker
+        LocksmithReEnterCreateRing attacker = new LocksmithReEnterCreateRing();
+
+        // pre conditions
+		assertEq(0, locksmith.keySupply(1));
+
+        // do the re-entrancy attack
+        locksmith.copyKey(0, 0, address(attacker), false);
+
+		// created a ring, harmlessly	
+		assertEq(1, locksmith.keySupply(1));
+        (bool isValid, bytes32 keyName, uint256 ringId, bool isRoot, uint256[] memory keys) = locksmith.inspectKey(1);
+        assertEq(true, isValid);
+        assertEq(bytes32(0), keyName);
+        assertEq(1, ringId);
+        assertEq(true, isRoot);
+        assertEq(1, keys.length);
 	}
 
-	function test_ReEnterBurnKeyAfterCopyKeyWorks public {
+	function test_ReEnterBurnKeyAfterCopyKeyWorks() public {
+		 // build the attacker
+        LocksmithReEnterBurnKey attacker = new LocksmithReEnterBurnKey(0, 0);
 
+        // create the ring, copy the key to the attacker
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+
+        // ready the attacker
+        attacker.setTarget(address(attacker));
+        attacker.ready();
+
+        // pre conditions
+		assertEq(1, locksmith.keySupply(0));
+
+        // copy the key, re-entrancy attack the burn function
+        locksmith.copyKey(0, 0, address(attacker), false);
+
+        // It was actually just burned out
+	   	assertEq(1, locksmith.keySupply(0));
+		assertEq(0, locksmith.balanceOf(address(attacker), 0));
 	}
 
-	function test_ReEnterCreateKeyAfterCopyKeyWorks public {
+	function test_ReEnterCreateKeyAfterCopyKeyWorks() public {
+		 // build the attacker
+        LocksmithReEnterCreateKey attacker = new LocksmithReEnterCreateKey(0);
 
-	}
+        // create the ring, copy the key to the attacker
+        locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
 
-	//////////////////////////////////////////////
-	// Re-entering everything after burning a key 
-	//////////////////////////////////////////////
+        // ready the attacker
+        attacker.ready();
 
-	function test_ReEnterCreateRingAfterBurnKeyIsSane public {
+        // pre conditions
+		assertEq(1, locksmith.keySupply(0));
+		assertEq(0, locksmith.keySupply(1));
+        
+		// do the re-entrancy attack
+        locksmith.copyKey(0, 0, address(attacker), false);
 
-	}
-
-	function test_ReEnterCopyAfterBurnWorksAsExpected public {
-
-	}
-
-	function test_ReEnterBurnAfterBurnWorks public {
-
-	}
-
-	function test_ReEnterCreateKeyAfterBurnWorks public {
-
+		// post conditions
+		assertEq(2, locksmith.keySupply(0));
+		assertEq(1, locksmith.keySupply(1));
+		assertEq(1, locksmith.balanceOf(address(0x1337), 1));
 	}
 
 	/**

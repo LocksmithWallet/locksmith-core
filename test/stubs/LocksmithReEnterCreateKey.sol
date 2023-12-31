@@ -12,9 +12,15 @@ import {ILocksmith} from '../../src/interfaces/ILocksmith.sol';
 ///////////////////////////////////////////////////////////
 contract LocksmithReEnterCreateKey is ERC1155Holder {
     uint256 public rootKeyId;
-		
+	bool public isReady;
+
 	constructor(uint256 _rootKeyId) {
 		rootKeyId = _rootKeyId;
+		isReady = false;
+	}
+
+	function ready() external {
+		isReady = true;
 	}
 
 	/**
@@ -26,8 +32,12 @@ contract LocksmithReEnterCreateKey is ERC1155Holder {
      */
     function onERC1155Received(address, address, uint256, uint256, bytes memory)
 		public virtual override returns (bytes4) {
-		// just immediate assume the operator is who we are attacking here.
-		ILocksmith(msg.sender).createKey(rootKeyId, bytes32(0), '', address(0x1337), false);
+
+		if (isReady) {
+			// just immediate assume the operator is who we are attacking here.
+			ILocksmith(msg.sender).createKey(rootKeyId, bytes32(0), '', address(0x1337), false);
+		}
+
 		return this.onERC1155Received.selector;
 	}
 }
