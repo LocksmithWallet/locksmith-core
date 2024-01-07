@@ -19,7 +19,8 @@ error CallerKeyStripped();
 
 // Transactions will revert with this message when an operator
 // provides input that did not pass basic validation. This includes
-// things like trying to redeem 0 keys.
+// things like trying to redeem 0 keys, or using a key that
+// does not properly extend the ILocksmith interface
 error InvalidInput();
 
 /**

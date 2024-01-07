@@ -3,11 +3,9 @@ pragma solidity ^0.8.16;
 
 ///////////////////////////////////////////////////////////
 // IMPORTS
-//
-
-// give us the ability to send and receive keys
 import "openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 import "./interfaces/ILocksmith.sol";
 import "./interfaces/IKeyLocker.sol";
@@ -148,14 +146,20 @@ contract KeyLocker is IKeyLocker, ERC1155Holder {
        
 		// make sure the key used is actually a root key
         (,,uint256 rootRing,bool isValidRoot,) = l.inspectKey(rootKeyId);
-		if(!isValidRoot) {
+		if (!isValidRoot) {
 			revert KeyNotRoot(); 
 		}
         
-		// validate that the redeeming key is on the root ring
+		// make sure the caller is actually holding the root key
+		if (l.balanceOf(msg.sender, rootKeyId) < 1) {
+			revert KeyNotHeld();
+		}	
+		
+		// validate that the redeeming key is on the root ring,
+		// and you can redeem root keys here
 		uint256[] memory keys = new uint256[](1);
 		keys[0] = keyId;
-		l.validateKeyRing(rootRing, keys, false);
+		l.validateKeyRing(rootRing, keys, true);
 
 		// make sure we can even redeem this many 
 		if(l.balanceOf(address(this), keyId) < amount) {
@@ -195,7 +199,12 @@ contract KeyLocker is IKeyLocker, ERC1155Holder {
      */
     function onERC1155Received(address, address from, uint256 keyId, uint256 count, bytes memory)
         public virtual override returns (bytes4) {
-        // we are going to accept this key no matter what.
+        // make sure the locksmith is a proper one
+		if(!IERC165(msg.sender).supportsInterface(type(ILocksmith).interfaceId)) {
+			revert InvalidInput();
+		}
+				
+		// we are going to accept this key no matter what.
         emit keyLockerDeposit(from, msg.sender, keyId, count);
 
         // success

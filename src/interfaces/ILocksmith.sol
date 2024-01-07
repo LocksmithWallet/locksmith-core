@@ -20,6 +20,12 @@ pragma solidity ^0.8.23;
 // storage is provided by the "KeyLocker" which enables key holders to borrow a key
 // for the duration of a transaction.
 import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+//
+// As part of the KeyLocker strategy, we want to ensure via standards (ERC-165) that
+// contracts can cleanly detect proper locksmiths, regardless of their deployment address.
+// This enables a more vibrant eco-system of deployed instances, without having to worry
+// about canonical network deployments.
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 // Transactions will revert with this message when an operation
 // is attempted on an invalid key ring ID.
@@ -63,7 +69,7 @@ error SoulboundTransferBreach();
  * time - including only for a part of a single transaction.
  * 
  */
-interface ILocksmith is IERC1155 {
+interface ILocksmith is IERC165, IERC1155 {
     ///////////////////////////////////////////////////////
     // Events
     ///////////////////////////////////////////////////////

@@ -290,6 +290,25 @@ contract Locksmith is ILocksmith, ERC1155 {
     ///////////////////////////////////////////////////////
 
 	/**
+	 * supportsInterface
+	 *
+	 * The Locksmith implements three specific interfaces:
+	 * - ILocksmith
+	 * - ERC1155
+	 * - ERC165
+	 *
+	 * @param interfaceId the interface identifier you want to check support for
+	 * @return true if the identifier is within the interface support.
+	 */
+	function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, IERC165) returns (bool) {
+		return
+            interfaceId == type(IERC1155).interfaceId ||
+            interfaceId == type(IERC1155MetadataURI).interfaceId ||
+            interfaceId == type(ILocksmith).interfaceId ||
+            interfaceId == type(IERC165).interfaceId;
+	}
+
+	/**
 	 * getRingInfo()
 	 *
 	 * Given a ring, provides ring metadata back.

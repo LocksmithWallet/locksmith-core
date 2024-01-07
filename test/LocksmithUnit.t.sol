@@ -34,6 +34,11 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 	//////////////////////////////////////////////
 
     function test_EmptyLocksmithState() public {
+		// check interface
+		assertEq(true, locksmith.supportsInterface(type(IERC1155).interfaceId));
+		assertEq(true, locksmith.supportsInterface(type(IERC165).interfaceId));
+		assertEq(true, locksmith.supportsInterface(type(ILocksmith).interfaceId));
+			
 		// initial state
     	assertEq(locksmith.keySupply(0), 0);
 		assertEq("Locksmith Keys", locksmith.name());
