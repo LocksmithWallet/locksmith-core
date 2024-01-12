@@ -9,9 +9,8 @@ import {
 	KeyNotHeld
 } from 'src/interfaces/ILocksmith.sol';
 
-// We are going to use the standard OZ ERC1155 implementation,
-// and then override the transfer callbacks to enforce soulbinding.
 import "openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
+import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 // This error is thrown when a token address does not comply with
 // the ILocksmith interface.
@@ -37,6 +36,12 @@ contract LocksmithKeyChecker {
 	 *
 	 * @param locksmith the contract address of the token received.
 	 */
+	modifier onlyValidLocksmiths(address locksmith) {
+		if(!IERC165(locksmith).supportsInterface(type(ILocksmith).interfaceId)) {
+			revert InvalidLocksmith();
+		}
+		_;
+	}
 
 	/**
 	 * onlyKeyHolder
