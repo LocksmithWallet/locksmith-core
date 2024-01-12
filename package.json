@@ -1,0 +1,29 @@
+{
+  "name": "locksmith-core",
+  "version": "0.2.0",
+  "description": "The core solidity SDK for Locksmith",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "forge test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LocksmithWallet/locksmith-core.git"
+  },
+  "keywords": [
+    "locksmith",
+    "solidity",
+    "sdk",
+    "wallet"
+  ],
+  "author": "Scott H Conner",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LocksmithWallet/locksmith-core/issues"
+  },
+  "homepage": "https://github.com/LocksmithWallet/locksmith-core#readme"
+}
