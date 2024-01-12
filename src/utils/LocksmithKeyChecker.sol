@@ -13,14 +13,31 @@ import {
 // and then override the transfer callbacks to enforce soulbinding.
 import "openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
 
+// This error is thrown when a token address does not comply with
+// the ILocksmith interface.
+error InvalidLocksmith();
+
 /**
  * LocksmithKeyChecker
  *
  * Developers can extend this contract to introduce modifiers for Locksmith
  * token gating in their contracts.
  */
-contract LocksmithKeyCreator {
-	
+contract LocksmithKeyChecker {
+
+	/**
+	 * onlyValidLocksmiths
+	 *
+	 * Use this modifier especially when receiving keys via onERC1155Received()
+	 * events. Add this to ensure that the tokens received have compliant
+	 * Locksmith interfaces.
+	 *
+	 * If it does not implement the ILocksmith interface, it will revert
+	 * with InvalidLocksmith().
+	 *
+	 * @param locksmith the contract address of the token received.
+	 */
+
 	/**
 	 * onlyKeyHolder
 	 *
