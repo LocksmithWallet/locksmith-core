@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT 
 pragma solidity ^0.8.23;
-
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 ///////////////////////////////////////////////////////////
 
 // Transactions will revert with this message when an operator
@@ -43,7 +43,7 @@ error InvalidInput();
  * Only root key holds can move the key out of the locker permanently by calling
  * #redeemKey.
  */
-interface IKeyLocker {
+interface IKeyLocker is IERC165 {
     ////////////////////////////////////////////////////////
     // Events
     ////////////////////////////////////////////////////////

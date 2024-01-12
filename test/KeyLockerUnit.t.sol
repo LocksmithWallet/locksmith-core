@@ -53,6 +53,11 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 	//////////////////////////////////////////////
 
 	function test_KeyDepositMustBeLocksmith() public {
+		// check interface
+        assertEq(true, keyLocker.supportsInterface(type(IERC165).interfaceId));
+        assertEq(true, keyLocker.supportsInterface(type(IKeyLocker).interfaceId));
+        assertEq(true, keyLocker.supportsInterface(type(ERC1155Holder).interfaceId));
+			
 		// stub token
 		ShadowKey shadow = new ShadowKey();
 			

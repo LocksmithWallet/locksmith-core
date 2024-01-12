@@ -17,6 +17,18 @@ import "./interfaces/IKeyLocker.sol";
 contract KeyLocker is IKeyLocker, ERC1155Holder {
     constructor() {}
 
+	/**
+     * supportsInterface
+     *
+     * @param interfaceId the interface identifier you want to check support for
+     * @return true if the identifier is within the interface support.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC1155Holder) returns (bool) {
+        return interfaceId == type(IKeyLocker).interfaceId || 
+			   interfaceId == type(IERC165).interfaceId ||
+			   interfaceId == type(ERC1155Holder).interfaceId;
+    }
+
     ////////////////////////////////////////////////////////
     // Locker methods 
     //
