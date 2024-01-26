@@ -610,12 +610,12 @@ contract Locksmith is ILocksmith, ERC1155 {
 	 * @param value The number of keys that are being sent.
 	 */
 	function _manageIndexes(address from, address to, uint256 id, uint256 value) internal {
-    	// lets keep track of each key that is moving
+		// lets keep track of each key that is moving
     	if(balanceOf(from, id) == value) {
     		addressKeys[from].remove(id);
         	keyHolders[id].remove(from);
     	}
-		if(address(0) != to) {
+		if(address(0) != to && 0 != value) {
 			addressKeys[to].add(id);
         	keyHolders[id].add(to);
 		}	

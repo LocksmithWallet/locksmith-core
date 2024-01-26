@@ -196,6 +196,14 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 	// Sending and Soulbinding 
 	//////////////////////////////////////////////
 
+	function test_SendingZeroKeysWorks() public {
+		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+
+		assertEq(1, locksmith.getHolders(0).length);
+		locksmith.safeTransferFrom(address(this), address(0x1337), 0, 0, '');
+		assertEq(1, locksmith.getHolders(0).length);
+	}
+
 	function test_CanSendKeys() public {
 		// create the default ring at 0,0
 		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
