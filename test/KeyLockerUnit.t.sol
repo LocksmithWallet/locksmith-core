@@ -76,14 +76,14 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 	
 		// the key locker will accept the key
 		vm.expectEmit(address(keyLocker));
-		emit IKeyLocker.keyLockerDeposit(address(this), address(locksmith), 0, 1);
+		emit IKeyLocker.KeyLockerDeposit(address(this), address(locksmith), 0, 1);
 		locksmith.safeTransferFrom(address(this), address(keyLocker), 0, 1, '');
 		
 		assertEq(1, locksmith.balanceOf(address(keyLocker), 0));
 
 		// send two and test 
 		vm.expectEmit(address(keyLocker));
-		emit IKeyLocker.keyLockerDeposit(address(this), address(locksmith), 0, 2);
+		emit IKeyLocker.KeyLockerDeposit(address(this), address(locksmith), 0, 2);
 		locksmith.safeTransferFrom(address(this), address(keyLocker), 0, 2, '');
 
 		// post-conditions
@@ -146,13 +146,13 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 
 		// this one will be nice
 		vm.expectEmit(address(keyLocker));
-		emit IKeyLocker.keyLockerLoan(address(this), address(locksmith), 0, 1, address(nice)); 
+		emit IKeyLocker.KeyLockerLoan(address(this), address(locksmith), 0, 1, address(nice)); 
 		vm.expectEmit(address(keyLocker));
-		emit IKeyLocker.keyLockerLoan(address(nice), address(locksmith), 0, 1, address(nice)); 
+		emit IKeyLocker.KeyLockerLoan(address(nice), address(locksmith), 0, 1, address(nice)); 
 		vm.expectEmit(address(keyLocker));
-		emit IKeyLocker.keyLockerDeposit(address(nice), address(locksmith), 0, 1);
+		emit IKeyLocker.KeyLockerDeposit(address(nice), address(locksmith), 0, 1);
 		vm.expectEmit(address(keyLocker));
-		emit IKeyLocker.keyLockerDeposit(address(nice), address(locksmith), 0, 1);
+		emit IKeyLocker.KeyLockerDeposit(address(nice), address(locksmith), 0, 1);
 		keyLocker.useKeys(address(locksmith), 0, 1, address(nice), '');
 		assertEq(2, locksmith.balanceOf(address(keyLocker), 0));
 	}
@@ -199,7 +199,7 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 	function test_SuccessfulRedemption() public {
 		locksmith.copyKey(0, 0, address(keyLocker), false);
 		vm.expectEmit(address(keyLocker));
-		emit IKeyLocker.keyLockerWithdrawal(address(this), address(locksmith), 0, 0, 1);
+		emit IKeyLocker.KeyLockerWithdrawal(address(this), address(locksmith), 0, 0, 1);
 		keyLocker.redeemKeys(address(locksmith), 0, 0, 1);
 	}
 	

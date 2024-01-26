@@ -97,7 +97,7 @@ contract KeyLocker is IKeyLocker, ERC1155Holder {
         // run the calldata to destination while sending a key
         // note: this is re-entrant as we can't really trust
         // the destination.
-        emit keyLockerLoan(msg.sender, locksmith, keyId, amount, destination);
+        emit KeyLockerLoan(msg.sender, locksmith, keyId, amount, destination);
         IERC1155(locksmith).safeTransferFrom(address(this), destination, keyId, amount, data);
 
         // ensure that the key has been returned. we define this by having at least as many keys as we started with,
@@ -181,7 +181,7 @@ contract KeyLocker is IKeyLocker, ERC1155Holder {
         IERC1155(locksmith).safeTransferFrom(address(this), msg.sender, keyId, amount, '');
 
         // emit the final event for records
-        emit keyLockerWithdrawal(msg.sender, locksmith, rootKeyId, keyId, amount);
+        emit KeyLockerWithdrawal(msg.sender, locksmith, rootKeyId, keyId, amount);
     }
 
     ////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ contract KeyLocker is IKeyLocker, ERC1155Holder {
 		}
 				
 		// we are going to accept this key no matter what.
-        emit keyLockerDeposit(from, msg.sender, keyId, count);
+        emit KeyLockerDeposit(from, msg.sender, keyId, count);
 
         // success
         return this.onERC1155Received.selector;

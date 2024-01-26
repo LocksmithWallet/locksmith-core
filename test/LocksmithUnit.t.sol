@@ -80,9 +80,9 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 
 		// define the events we expect to fire on the next call
 		vm.expectEmit(address(locksmith));
-		emit ILocksmith.keyMinted(address(this), 0, 0, address(this));
+		emit ILocksmith.KeyMinted(address(this), 0, 0, address(this));
 		vm.expectEmit(address(locksmith));
-		emit ILocksmith.keyRingCreated(address(this), 0, stb("My Key Ring"), address(this));
+		emit ILocksmith.KeyRingCreated(address(this), 0, stb("My Key Ring"), address(this));
 
 		// successfully create a ring and a root key
 		(uint256 ringId, uint256 keyId) = locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), 
@@ -168,7 +168,7 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 
 		// ensure the event is logged
 		vm.expectEmit(address(locksmith));
-		emit ILocksmith.keyMinted(address(this), 0, 1, address(0x1337));
+		emit ILocksmith.KeyMinted(address(this), 0, 1, address(0x1337));
 		locksmith.createKey(0, stb('Second'), '', address(0x1337), false); // id: 1
 
 		// post conditions
@@ -282,7 +282,7 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 
 		// soulbind the root key
 		vm.expectEmit(address(locksmith));
-		emit ILocksmith.setSoulboundKeyAmount(address(this), address(this), 0, 1);
+		emit ILocksmith.SetSoulboundKeyAmount(address(this), address(this), 0, 1);
 		locksmith.soulbindKey(0, address(this), 0, 1);
 	
 		// we won't be able to send it now	
@@ -297,7 +297,7 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 
 		// unbind the key
 		vm.expectEmit(address(locksmith));
-		emit ILocksmith.setSoulboundKeyAmount(address(this), address(this), 0, 0);
+		emit ILocksmith.SetSoulboundKeyAmount(address(this), address(this), 0, 0);
 		locksmith.soulbindKey(0, address(this), 0, 0);
 		
 		// we can now send
@@ -369,7 +369,7 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 
 		// do it soulbound to make sure that works
 		vm.expectEmit(address(locksmith));
-		emit ILocksmith.keyMinted(address(this), 0, 0, address(0x1337));
+		emit ILocksmith.KeyMinted(address(this), 0, 0, address(0x1337));
 		locksmith.copyKey(0, 0, address(0x1337), true); 
 	
 		// has the key been copied?	
@@ -429,7 +429,7 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 		assertEq(1, locksmith.balanceOf(address(0x1337), 0));
 
 		vm.expectEmit(address(locksmith));
-		emit ILocksmith.keyBurned(address(this), 0, 0, address(0x1337), 1);
+		emit ILocksmith.KeyBurned(address(this), 0, 0, address(0x1337), 1);
 		locksmith.burnKey(0, 0, address(0x1337), 1);
 
 		// post conditions

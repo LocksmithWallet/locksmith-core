@@ -75,7 +75,7 @@ interface ILocksmith is IERC165, IERC1155 {
     ///////////////////////////////////////////////////////
     
     /**
-     * keyRingCreated 
+     * KeyRingCreated 
      *
      * This event is emitted when a key ring is created and a root key is minted.
      *
@@ -84,10 +84,10 @@ interface ILocksmith is IERC165, IERC1155 {
      * @param ringName  the ring's human readable name, encoded as a bytes32.
      * @param recipient the address of the root key recipient
      */
-    event keyRingCreated(address operator, uint256 ringId, bytes32 ringName, address recipient);
+    event KeyRingCreated(address operator, uint256 ringId, bytes32 ringName, address recipient);
 
     /**
-     * keyMinted
+     * KeyMinted
      *
      * This event is emitted when a key is minted. This event
      * is also emitted when a root key is minted upon ring creation.
@@ -99,10 +99,10 @@ interface ILocksmith is IERC165, IERC1155 {
      * @param keyId    the key ID that was minted by the operator. 
      * @param receiver the receiving wallet address where the keyId was deposited.
      */
-    event keyMinted(address operator, uint256 ringId, uint256 keyId, address receiver);
+    event KeyMinted(address operator, uint256 ringId, uint256 keyId, address receiver);
     
     /**
-     * keyBurned
+     * KeyBurned
      *
      * This event is emitted when a key is burned by the root key
      * holder. 
@@ -113,10 +113,10 @@ interface ILocksmith is IERC165, IERC1155 {
      * @param target   the address of the wallet that had keys burned. 
      * @param amount   the number of keys burned in the operation.
      */
-    event keyBurned(address operator, uint256 ringId, uint256 keyId, address target, uint256 amount);
+    event KeyBurned(address operator, uint256 ringId, uint256 keyId, address target, uint256 amount);
 
     /**
-     * setSoulboundKeyAmount
+     * SetSoulboundKeyAmount
      *
      * This event fires when the state of a soulbind key is set.
      *
@@ -125,7 +125,7 @@ interface ILocksmith is IERC165, IERC1155 {
      * @param keyId     the Id we are setting the binding state for
      * @param amount    the number of tokens this address must hold
      */
-    event setSoulboundKeyAmount(address operator, address keyHolder, uint256 keyId, uint256 amount);
+    event SetSoulboundKeyAmount(address operator, address keyHolder, uint256 keyId, uint256 amount);
 
     ///////////////////////////////////////////////////////
     // Key Operations 

@@ -147,7 +147,7 @@ contract Locksmith is ILocksmith, ERC1155 {
         _mintKey(r, r.rootKeyId, recipient, false);
 
         // the ring was successfully created
-		emit keyRingCreated(msg.sender, r.id, r.name, recipient);
+		emit KeyRingCreated(msg.sender, r.id, r.name, recipient);
         return (r.id, r.rootKeyId);
 	}
 
@@ -283,7 +283,7 @@ contract Locksmith is ILocksmith, ERC1155 {
 	   	// burn is not re-entrant	
         _burn(holder, keyId, amount);
 
-        emit keyBurned(msg.sender, ring.id, keyId, holder, amount);
+        emit KeyBurned(msg.sender, ring.id, keyId, holder, amount);
 	}
 
 	///////////////////////////////////////////////////////
@@ -535,7 +535,7 @@ contract Locksmith is ILocksmith, ERC1155 {
 	 */
 	function _soulbind(address target, uint256 keyId, uint256 amount) internal {
         soulboundKeyAmounts[target][keyId] = amount;
-        emit setSoulboundKeyAmount(msg.sender, target, keyId, amount);
+        emit SetSoulboundKeyAmount(msg.sender, target, keyId, amount);
 	}
 
 	/**
@@ -569,7 +569,7 @@ contract Locksmith is ILocksmith, ERC1155 {
 
         // THIS IS RE-ENTRANT
         _mint(receiver, keyId, 1, ''); 
-        emit keyMinted(msg.sender, ring.id, keyId, receiver);
+        emit KeyMinted(msg.sender, ring.id, keyId, receiver);
     }
 
 	/**

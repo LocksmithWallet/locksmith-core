@@ -49,7 +49,7 @@ interface IKeyLocker is IERC165 {
     ////////////////////////////////////////////////////////
 
     /**
-     * keyLockerDeposit
+     * KeyLockerDeposit
      *
      * This event is emitted when a key is sent to the contract.
      *
@@ -58,10 +58,10 @@ interface IKeyLocker is IERC165 {
      * @param keyId            the ID of the key that was deposited
      * @param amount           the amount of keys deposited for locker use
      */
-    event keyLockerDeposit(address operator, address locksmith, uint256 keyId, uint256 amount);
+    event KeyLockerDeposit(address operator, address locksmith, uint256 keyId, uint256 amount);
        
     /**
-     * keyLockerLoan
+     * KeyLockerLoan
      *
      * This event is fired when a key is loaned out of the locker.
      * Returns will register keyLockerDeposit events.
@@ -72,10 +72,10 @@ interface IKeyLocker is IERC165 {
      * @param count the number of keys successfully loaned out
      * @param destination where the keys were sent.
      */
-    event keyLockerLoan(address operator, address locksmith, uint256 keyId, uint256 count, address destination); 
+    event KeyLockerLoan(address operator, address locksmith, uint256 keyId, uint256 count, address destination); 
     
     /**
-     * keyLockerWithdrawal
+     * KeyLockerWithdrawal
      *
      * This event is emitted when a key is removed from the contract
      * permanently, which can only be done by the trust root key holder. 
@@ -86,7 +86,7 @@ interface IKeyLocker is IERC165 {
      * @param keyId            the ID of the key that was removed
      * @param amount           the amount of keys redeemed from locker use
      */
-    event keyLockerWithdrawal(address operator, address locksmith, uint256 rootKeyId, uint256 keyId, uint256 amount);
+    event KeyLockerWithdrawal(address operator, address locksmith, uint256 rootKeyId, uint256 keyId, uint256 amount);
 
     ////////////////////////////////////////////////////////
     // Locker methods 
