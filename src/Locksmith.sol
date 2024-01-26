@@ -302,11 +302,8 @@ contract Locksmith is ILocksmith, ERC1155 {
 	 * @return true if the identifier is within the interface support.
 	 */
 	function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, IERC165) returns (bool) {
-		return
-            interfaceId == type(IERC1155).interfaceId ||
-            interfaceId == type(IERC1155MetadataURI).interfaceId ||
-            interfaceId == type(ILocksmith).interfaceId ||
-            interfaceId == type(IERC165).interfaceId;
+		return interfaceId == type(ILocksmith).interfaceId ||
+        	super.supportsInterface(interfaceId); 
 	}
 
 	/**

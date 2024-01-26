@@ -56,7 +56,7 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 		// check interface
         assertEq(true, keyLocker.supportsInterface(type(IERC165).interfaceId));
         assertEq(true, keyLocker.supportsInterface(type(IKeyLocker).interfaceId));
-        assertEq(true, keyLocker.supportsInterface(type(ERC1155Holder).interfaceId));
+        assertEq(true, keyLocker.supportsInterface(type(IERC1155Receiver).interfaceId));
 			
 		// stub token
 		ShadowKey shadow = new ShadowKey();
