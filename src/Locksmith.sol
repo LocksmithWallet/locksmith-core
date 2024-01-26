@@ -580,21 +580,21 @@ contract Locksmith is ILocksmith, ERC1155 {
      * soulbound token amounts.
      */
     function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal virtual override {	
-        // here we check to see if any 'from' addresses
+		super._update(from, to, ids, values);
+        
+		// here we check to see if any 'from' addresses
         // would end up with too few soulbound requirements
         // at the end of the transaction.
         for(uint256 x = 0; x < ids.length; x++) {
             // we need to allow address zero during minting,
             // and we need to allow the locksmith to violate during burning
             if ( (from != address(0)) && (to != address(0)) &&  
-            	 (balanceOf(from, ids[x]) - values[x]) < soulboundKeyAmounts[from][ids[x]]) {
+            	 (balanceOf(from, ids[x])) < soulboundKeyAmounts[from][ids[x]]) {
 					revert SoulboundTransferBreach();
 			}	
 
 			_manageIndexes(from, to, ids[x], values[x]);
         }
-		
-		super._update(from, to, ids, values);
 	}
 
 	/**
@@ -611,7 +611,7 @@ contract Locksmith is ILocksmith, ERC1155 {
 	 */
 	function _manageIndexes(address from, address to, uint256 id, uint256 value) internal {
 		// lets keep track of each key that is moving
-    	if(balanceOf(from, id) == value) {
+    	if(balanceOf(from, id) == 0) {
     		addressKeys[from].remove(id);
         	keyHolders[id].remove(from);
     	}

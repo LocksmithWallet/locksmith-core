@@ -204,6 +204,20 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 		assertEq(1, locksmith.getHolders(0).length);
 	}
 
+	function test_SendingViaBatchDoesntBypassSoulbinding() public {
+		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
+		locksmith.copyKey(0, 0, address(this), true);
+
+		// i have two soulbound root keys, shouldnt be able to send them both.
+		uint256[] memory ids = new uint256[](2);
+		ids[0] = 0;
+		ids[1] = 0;
+		uint256[] memory amounts = new uint256[](2);
+		amounts[0] = 1;
+		amounts[1] = 1;
+		vm.expectRevert(SoulboundTransferBreach.selector);
+		locksmith.safeBatchTransferFrom(address(this), address(0x1337), ids, amounts, '');	
+	}
 	function test_CanSendKeys() public {
 		// create the default ring at 0,0
 		locksmith.createKeyRing(stb("My Key Ring"), stb("Master Key"), '', address(this));
