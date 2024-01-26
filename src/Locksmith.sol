@@ -367,6 +367,22 @@ contract Locksmith is ILocksmith, ERC1155 {
 	}
 
 	/**
+     * getRingId
+     *
+     * Returns the ring ID for a given key. If the key is invalid,
+     * it will revert with InvalidRingKey().
+     *
+     * @param keyId the id of the key you are looking for
+     * @return the id of the ring.
+     */
+     function getRingId(uint256 keyId) external view returns (uint256) {
+		if (keyId >= keyCount) {
+			revert InvalidRingKey();
+		}
+		return keyRingAssociations[keyId]; 
+	 }
+
+	/**
      * isRootKey
      *
      * @param keyId the key id in question

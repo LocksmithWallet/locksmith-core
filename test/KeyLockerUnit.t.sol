@@ -213,6 +213,7 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 	}
 
 	function test_RedemptionKeyMustBeRoot() public {
+		locksmith.createKey(0, stb('Key'), '', address(this), false);
 		vm.expectRevert(KeyNotRoot.selector);
 		keyLocker.redeemKeys(address(locksmith), 1, 0, 1);
 	}

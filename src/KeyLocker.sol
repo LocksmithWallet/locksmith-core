@@ -156,7 +156,8 @@ contract KeyLocker is IKeyLocker, ERC1155Holder {
 		}
        
 		// make sure the key used is actually a root key
-        (,,uint256 rootRing,bool isValidRoot,) = l.inspectKey(rootKeyId);
+        bool isValidRoot = l.isRootKey(rootKeyId);
+		uint256 rootRing = l.getRingId(rootKeyId);
 		if (!isValidRoot) {
 			revert KeyNotRoot(); 
 		}

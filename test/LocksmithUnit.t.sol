@@ -64,6 +64,10 @@ contract LocksmithUnitTest is Test, ERC1155Holder {
 		vm.expectRevert(InvalidRing.selector);
 		uint256[] memory keys = new uint256[](1);
 		locksmith.validateKeyRing(0, keys, true);
+
+		// calling getRingId fails on invalid key
+		vm.expectRevert(InvalidRingKey.selector);
+		locksmith.getRingId(99);
 	}
 
 	//////////////////////////////////////////////

@@ -277,6 +277,17 @@ interface ILocksmith is IERC165, IERC1155 {
      */
     function getSoulboundAmount(address account, uint256 keyId) external view returns (uint256);
 
+	/**
+	 * getRingId 
+	 *
+	 * Returns the ring ID for a given key. If the key is invalid,
+	 * it will revert with InvalidRingKey().
+	 *
+	 * @param keyId the id of the key you are looking for
+	 * @return the id of the ring.
+     */
+	 function getRingId(uint256 keyId) external view returns (uint256);
+
     /**
      * isRootKey
      *
