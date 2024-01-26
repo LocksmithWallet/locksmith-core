@@ -63,7 +63,19 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 			
 		// use a regular ERC1155 token, it will reject
 		vm.expectRevert(InvalidInput.selector);
-		shadow.mint(address(keyLocker), 0, 1, '');	
+		shadow.mint(address(keyLocker), 0, 1, '');
+
+		// try to do it in batch, it should also reject
+		shadow.mint(address(this), 1, 2, '');	
+		uint256[] memory ids = new uint256[](2);
+		ids[0] = 1;
+		ids[1] = 1;
+		uint256[] memory amounts = new uint256[](2);
+		amounts[0] = 1;
+		amounts[1] = 1;
+		vm.expectRevert(InvalidInput.selector);
+		shadow.safeBatchTransferFrom(address(this), address(keyLocker), ids, amounts, '');	
+		
 	}
 
 	function test_SuccessfulDeposit() public {
@@ -71,6 +83,7 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 		assertEq(0, locksmith.balanceOf(address(keyLocker), 0));
 		
 		// want to make sure I have three copies
+		locksmith.copyKey(0, 0, address(this), false);
 		locksmith.copyKey(0, 0, address(this), false);
 		locksmith.copyKey(0, 0, address(this), false);
 	
@@ -85,9 +98,25 @@ contract KeyLockerUnitTest is Test, ERC1155Holder {
 		vm.expectEmit(address(keyLocker));
 		emit IKeyLocker.KeyLockerDeposit(address(this), address(locksmith), 0, 2);
 		locksmith.safeTransferFrom(address(this), address(keyLocker), 0, 2, '');
-
+		
 		// post-conditions
 		assertEq(3, locksmith.balanceOf(address(keyLocker), 0));
+
+		// send via batch and it works
+		locksmith.copyKey(0, 0, address(this), false);
+		locksmith.copyKey(0, 0, address(this), false);
+		uint256[] memory ids = new uint256[](2);
+        ids[0] = 0;
+        ids[1] = 0;
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 1;
+        amounts[1] = 1;
+        vm.expectEmit(address(keyLocker));
+		emit IKeyLocker.KeyLockerDeposit(address(this), address(locksmith), 0, 1);
+        vm.expectEmit(address(keyLocker));
+		emit IKeyLocker.KeyLockerDeposit(address(this), address(locksmith), 0, 1);
+        locksmith.safeBatchTransferFrom(address(this), address(keyLocker), ids, amounts, '');
+		assertEq(5, locksmith.balanceOf(address(keyLocker), 0));
 	}
 
 	//////////////////////////////////////////////

@@ -221,4 +221,20 @@ contract KeyLocker is IKeyLocker, ERC1155Holder {
         // success
         return this.onERC1155Received.selector;
     }
+
+	function onERC1155BatchReceived(address,address from ,uint256[] memory ids, uint256[] memory values, bytes memory)
+		public virtual override returns (bytes4) {
+		
+		if(!IERC165(msg.sender).supportsInterface(type(ILocksmith).interfaceId)) {
+			revert InvalidInput();
+		}
+
+		// we are going to accept all the keys no matter what.
+		for(uint256 x = 0; x < ids.length; x++) {
+			emit KeyLockerDeposit(from, msg.sender, ids[x], values[x]);
+		}
+
+		// success
+		return this.onERC1155BatchReceived.selector;
+	}
 } 
