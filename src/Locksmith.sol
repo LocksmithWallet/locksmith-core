@@ -21,8 +21,6 @@ import "openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
 
 // We use unsigned integer sets to manage key lists
 import "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
-using EnumerableSet for EnumerableSet.UintSet;
-using EnumerableSet for EnumerableSet.AddressSet;
 
 /**
  * Locksmith
@@ -37,6 +35,9 @@ using EnumerableSet for EnumerableSet.AddressSet;
  * key transfers.
  */
 contract Locksmith is ILocksmith, ERC1155 {
+	using EnumerableSet for EnumerableSet.UintSet;
+	using EnumerableSet for EnumerableSet.AddressSet;
+
 	///////////////////////////////////////////////////////
     // Data Structures 
     ///////////////////////////////////////////////////////
