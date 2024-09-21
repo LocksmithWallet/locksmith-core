@@ -108,7 +108,7 @@ contract Locksmith is ILocksmith, ERC1155 {
      *
      * This is the name of the ERC1155 collection. 
      */
-    function name() external pure returns (string memory) {
+    function name() external virtual pure returns (string memory) {
         return "Locksmith Keys";
     }
 
